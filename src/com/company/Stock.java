@@ -40,6 +40,10 @@ public class Stock {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        new News(content);
+
+
         try {
             content = content.substring(content.indexOf("itemprop=") + 1, content.indexOf("/>\n" +
                     "</div>\n" +
