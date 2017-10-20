@@ -17,10 +17,19 @@ public class Stock {
     public String currency;
     public List historiclist;
 
+    public int getPolarity() {
+        return polarity;
+    }
+
+    public void setPolarity(int polarity) {
+        this.polarity = polarity;
+    }
+
+    public int polarity;
+
     public List getHistoriclist() {
         return historiclist;
     }
-
 
 
     public Stock(String symbol) {
@@ -37,14 +46,8 @@ public class Stock {
             Scanner scanner = new Scanner(connection.getInputStream());
             scanner.useDelimiter("\\Z");
             content = scanner.next();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        new News(content);
-
-
-        try {
+            News news = new News(content);
+            setPolarity(news.getPolarity());
             content = content.substring(content.indexOf("itemprop=") + 1, content.indexOf("/>\n" +
                     "</div>\n" +
                     "</div>\n" +
@@ -56,51 +59,51 @@ public class Stock {
             content = content.replaceAll("/>", "");
             content = content.replaceAll("\\s+", " ");
             content = content.replaceAll("> ", "\" \"");
+            String split = "\" \"";
+
+            String[] parts = content.split(split);
+            ArrayList<String> list = new ArrayList<String>();
+
+            for (int i = 0; i < parts.length; i++) {
+                parts[i] = parts[i].replaceAll("\"", "");
+                parts[i] = parts[i].replaceAll("content=", "");
+                parts[i] = parts[i].replaceAll(",", "");
+                parts[i] = parts[i].replaceAll("\\+", "");
+                parts[i] = parts[i].replaceAll("-", "");
+
+                parts[i] = parts[i].toLowerCase();
+                if (parts[i].contains("www.") || parts[i].contains("after") || parts[i].contains("datasource") || parts[i].contains("quote")) {
+                    parts[i] = "";
+                }
+            }
+            for (String part : parts) {
+                if (!part.equals(""))
+                    list.add(part.substring(part.indexOf(" ") + 1).toUpperCase());
+
+            }
+            for (int i = 0; i < list.size(); i++) {
+
+
+                if (list.get(i).equals("")) {
+                    list.set(i, "0.00");
+
+                }
+            }
+            if (list.size() != 0) {
+                setName(list.get(0));
+                setTickerSymbol(list.get(1));
+                setExchange(list.get(2));
+                setExchangeTimeZone(list.get(3));
+                setPrice(Double.parseDouble(list.get(4)));
+                setPriceChange(Double.parseDouble(list.get(5)));
+                setPriceChangePercent(Double.parseDouble(list.get(6)));
+                setCurrency(list.get(7));
+
+
+            }
         } catch (Exception e) {
         }
-        String split = "\" \"";
 
-        String[] parts = content.split(split);
-        ArrayList<String> list = new ArrayList<String>();
-
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].replaceAll("\"", "");
-            parts[i] = parts[i].replaceAll("content=", "");
-            parts[i] = parts[i].replaceAll(",", "");
-            parts[i] = parts[i].replaceAll("\\+", "");
-            parts[i] = parts[i].replaceAll("-", "");
-
-            parts[i] = parts[i].toLowerCase();
-            if (parts[i].contains("www.") || parts[i].contains("after") || parts[i].contains("datasource") || parts[i].contains("quote")) {
-                parts[i] = "";
-            }
-        }
-        for (String part : parts) {
-            if (!part.equals(""))
-                list.add(part.substring(part.indexOf(" ") + 1).toUpperCase());
-
-        }
-        for (int i = 0; i < list.size(); i++) {
-
-
-            if (list.get(i).equals("")) {
-                list.set(i, "0.00");
-
-            }
-        }
-        if (list.size() != 0) {
-            setName(list.get(0));
-            setTickerSymbol(list.get(1));
-            setExchange(list.get(2));
-            setExchangeTimeZone(list.get(3));
-            setPrice(Double.parseDouble(list.get(4)));
-            setPriceChange(Double.parseDouble(list.get(5)));
-            setPriceChangePercent(Double.parseDouble(list.get(6)));
-
-            setCurrency(list.get(7));
-
-
-        }
     }
 
 //    public void setHistoricStock(String exchange, String symbol) {
