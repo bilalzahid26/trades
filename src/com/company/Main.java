@@ -12,10 +12,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
 
-        String[] tickerSymbol = {
-                "AAL"
-//                , "ABF", "ADM",
-//                "AHT", "ANTO", "AV", "AZN", "BA", "BAB", "BARC", "BATS", "BDEV",
+        String[] tickerSymbol = {"TsLa", "AAPL"
+//                "AAL", "ABF", "ADM", "AHT", "ANTO", "AV", "AZN", "BA", "BAB", "BARC", "BATS", "BDEV",
 //                "BLND", "BLT", "BNZL", "BP", "BRBY", "BT.A", "CCH", "CCL", "CNA", "CPG", "CRDA", "CRH", "CTEC", "DCC",
 //                "DGE", "DLG", "EXPN", "EZJ", "FERG", "FRES", "GFS", "GKN", "GLEN", "GSK", "HL", "HMSO", "HSBA", "IAG",
 //                "IHG", "III", "IMB", "ITRK", "ITV", "JMAT", "KGF", "LGEN", "LLOY", "LSE", "MCRO", "MDC", "MERL",
@@ -32,32 +30,67 @@ public class Main {
         ArrayList<Stock> listOfStock = new ArrayList<>();
         for (int i = 0; i < tickerSymbol.length; i++) {
             listOfStock.add(new Stock(tickerSymbol[i]));
+            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
 
+            createGraph(idea,listOfStock,i);
 
-         }
+        }
 
 
         for (int i = 0; i < listOfStock.size(); i++) {
             System.out.println(listOfStock.get(i).getTickerSymbol() + ": " + listOfStock.get(i).getPolarity());
 
 
-            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
             String passing = "";
+            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
 
             if (idea.isFile()) {
                 Scanner sc = new Scanner(idea);
                 while (sc.hasNextLine()) {
-                    passing = passing + sc.nextLine();
+                    passing = passing + sc.nextLine() + '\n';
                 }
-                writeFile(passing, idea, listOfStock, i);
+                // writeFile(passing, idea, listOfStock, i);
 
 
             } else {
                 idea.createNewFile();
-                writeFile(passing, idea, listOfStock, i);
+                //writeFile(passing, idea, listOfStock, i);
 
             }
+
         }
+    }
+
+    public static void createGraph(File idea, ArrayList<Stock> listOfStock, int i) {
+        String line;
+        FileInputStream fis = null;
+
+        int[] prices = new int[10];
+
+        try {
+            fis = new FileInputStream(idea);
+
+            DataInputStream myInput = new DataInputStream(fis);
+            ArrayList<String[]> strar = new ArrayList<String[]>();
+
+            while ((line = myInput.readLine()) != null) {
+                strar.add(line.split(","));
+            }
+
+            for (int j = 0; j < prices.length; j++) {
+                Double price = Double.parseDouble(strar.get(j)[5]);
+                prices[j] = price.intValue();
+
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        new GraphingData(prices);
+        GraphingData.createGraph(listOfStock.get(i).getTickerSymbol());
 
 
     }
