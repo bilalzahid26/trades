@@ -18,12 +18,16 @@ public class GraphingData extends JPanel {
     private int pointWidth = 4;
     private int numberYDivisions = 10;
     public static int[] scores;
+    public static String[] dates;
 
-    public GraphingData(int[] scores) {
+    public GraphingData(int[] scores, String[] date) {
         this.scores = scores;
+        this.dates = date;
 
 
     }
+
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -78,7 +82,7 @@ public class GraphingData extends JPanel {
                     g2.setColor(gridColor);
                     g2.drawLine(x0, getHeight() - padding - labelPadding-1 - pointWidth, x1, padding);
                     g2.setColor(Color.BLACK);
-                    String xLabel = (i+1) + "";
+                    String xLabel =  "   "+ dates[i] + "   ";
                     FontMetrics metrics = g2.getFontMetrics();
                     int labelWidth = metrics.stringWidth(xLabel);
                     g2.drawString(xLabel, x0 - labelWidth / 2, y0 + metrics.getHeight() + 3);
@@ -131,16 +135,16 @@ public class GraphingData extends JPanel {
         return maxScore + 50;
     }
 
-    public static void createGraph(String tickerSymbol) {
+    public static void createGraph(String tickerSymbol,String[] date) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGui(tickerSymbol);
+                createAndShowGui(tickerSymbol, date);
             }
         });
     }
-    private static void createAndShowGui(String tickerSymbol) {
-        MainPanel mainPanel = new MainPanel(scores, tickerSymbol);
-        mainPanel.setPreferredSize(new Dimension(800, 600));
+    private static void createAndShowGui(String tickerSymbol, String[] date) {
+        MainPanel mainPanel = new MainPanel(scores, tickerSymbol, date);
+        mainPanel.setPreferredSize(new Dimension(900, 600));
         JFrame frame = new JFrame("DrawGraph");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(mainPanel);
@@ -150,11 +154,15 @@ public class GraphingData extends JPanel {
     }
 
 
+
+
+
+
     //Main changes underneath
 
     static class MainPanel extends JPanel {
 
-        public MainPanel(int[] scores, String tickerSymbol) {
+        public MainPanel(int[] scores, String tickerSymbol, String[] date) {
 
             setLayout(new BorderLayout());
 
@@ -162,7 +170,7 @@ public class GraphingData extends JPanel {
             title.setFont(new Font("Arial", Font.BOLD, 25));
             title.setHorizontalAlignment(JLabel.CENTER);
 
-            JPanel graphPanel = new GraphingData(scores);
+            JPanel graphPanel = new GraphingData(scores, date);
 
             VerticalPanel vertPanel = new VerticalPanel();
 

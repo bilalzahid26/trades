@@ -3,6 +3,7 @@ package com.company;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 
 
@@ -32,7 +33,7 @@ public class Main {
             listOfStock.add(new Stock(tickerSymbol[i]));
             File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
 
-            createGraph(idea,listOfStock,i);
+            createGraph(idea, listOfStock, i);
 
         }
 
@@ -64,8 +65,8 @@ public class Main {
     public static void createGraph(File idea, ArrayList<Stock> listOfStock, int i) {
         String line;
         FileInputStream fis = null;
-
         int[] prices = new int[10];
+        String[] date = new String[10];
 
         try {
             fis = new FileInputStream(idea);
@@ -80,7 +81,7 @@ public class Main {
             for (int j = 0; j < prices.length; j++) {
                 Double price = Double.parseDouble(strar.get(j)[5]);
                 prices[j] = price.intValue();
-
+                date[j] = strar.get(j)[8];
             }
 
         } catch (FileNotFoundException e) {
@@ -89,8 +90,10 @@ public class Main {
             e.printStackTrace();
         }
 
-        new GraphingData(prices);
-        GraphingData.createGraph(listOfStock.get(i).getTickerSymbol());
+        new GraphingData(prices,date);
+
+
+        GraphingData.createGraph(listOfStock.get(i).getTickerSymbol(), date);
 
 
     }
