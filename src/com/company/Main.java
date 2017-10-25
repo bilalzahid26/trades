@@ -12,53 +12,85 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
 
-        String[] tickerSymbol = {"AAL", "ABF", "ADM",
-                "AHT", "ANTO", "AV", "AZN", "BA", "BAB", "BARC", "BATS", "BDEV",
-                "BLND", "BLT", "BNZL", "BP", "BRBY", "BT.A", "CCH", "CCL", "CNA", "CPG", "CRDA", "CRH", "CTEC", "DCC",
-                "DGE", "DLG", "EXPN", "EZJ", "FERG", "FRES", "GFS", "GKN", "GLEN", "GSK", "HL", "HMSO", "HSBA", "IAG",
-                "IHG", "III", "IMB", "ITRK", "ITV", "JMAT", "KGF", "LGEN", "LLOY", "LSE", "MCRO", "MDC", "MERL",
-                "MKS", "MNDI", "MRW", "NG", "NXT", "OML", "PFG", "PPB", "PRU", "PSN", "PSON", "RB", "RBS", "RDSA", "REL",
-                "RIO", "RMG", "RR", "RRS", "RSA", "RTO", "SBRY", "SDR", "SGE", "SGRO", "SHP", "SKY", "SLA", "SMIN", "SMT",
-                "SN", "SSE", "STAN", "STJ", "SVT", "TSCO", "TW", "ULVR", "UU", "VOD", "WPG", "WTB", "ABC", "ASHM", "BBA",
-                "BKG", "BVIC", "BYG", "CCC", "CHG", "DEB", "DLN", "DMGT", "DOM", "DRX", "ECM", "ELM", "EVR",
-                "FGP", "FXPO", "GNC", "GNS", "HCM", "HFD", "HWDN", "INCH", "JD", "JDW", "KAZ", "KBT", "LAM", "MONY", "MPE",
-                "NEX", "NXG", "OCDO", "PNN", "QQ", "RMV", "RNK", "SHB", "SHI", "TALK", "TCAP", "VEC", "VSVS",
-                "YOU", "ZYT"};
+        String[] tickerSymbol = {"TsLa", "AAPL"
+//                "AAL", "ABF", "ADM", "AHT", "ANTO", "AV", "AZN", "BA", "BAB", "BARC", "BATS", "BDEV",
+//                "BLND", "BLT", "BNZL", "BP", "BRBY", "BT.A", "CCH", "CCL", "CNA", "CPG", "CRDA", "CRH", "CTEC", "DCC",
+//                "DGE", "DLG", "EXPN", "EZJ", "FERG", "FRES", "GFS", "GKN", "GLEN", "GSK", "HL", "HMSO", "HSBA", "IAG",
+//                "IHG", "III", "IMB", "ITRK", "ITV", "JMAT", "KGF", "LGEN", "LLOY", "LSE", "MCRO", "MDC", "MERL",
+//                "MKS", "MNDI", "MRW", "NG", "NXT", "OML", "PFG", "PPB", "PRU", "PSN", "PSON", "RB", "RBS", "RDSA", "REL",
+//                "RIO", "RMG", "RR", "RRS", "RSA", "RTO", "SBRY", "SDR", "SGE", "SGRO", "SHP", "SKY", "SLA", "SMIN", "SMT",
+//                "SN", "SSE", "STAN", "STJ", "SVT", "TSCO", "TW", "ULVR", "UU", "VOD", "WPG", "WTB", "ABC", "ASHM", "BBA",
+//                "BKG", "BVIC", "BYG", "CCC", "CHG", "DEB", "DLN", "DMGT", "DOM", "DRX", "ECM", "ELM", "EVR",
+//                "FGP", "FXPO", "GNC", "GNS", "HCM", "HFD", "HWDN", "INCH", "JD", "JDW", "KAZ", "KBT", "LAM", "MONY", "MPE",
+//                "NEX", "NXG", "OCDO", "PNN", "QQ", "RMV", "RNK", "SHB", "SHI", "TALK", "TCAP", "VEC", "VSVS",
+//                "YOU", "ZYT"
+        };
+
+
         ArrayList<Stock> listOfStock = new ArrayList<>();
         for (int i = 0; i < tickerSymbol.length; i++) {
             listOfStock.add(new Stock(tickerSymbol[i]));
+            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
 
-
-//            if (listOfStock.size() != 0) {
-//                listOfStock.get(i).setHistoricStock(listOfStock.get(i).getExchange(), tickerSymbol[i]);
-//            }
-//            System.out.println(listOfStock.get(i).getName());
-
+            createGraph(idea,listOfStock,i);
 
         }
 
 
         for (int i = 0; i < listOfStock.size(); i++) {
+            System.out.println(listOfStock.get(i).getTickerSymbol() + ": " + listOfStock.get(i).getPolarity());
 
 
-            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
             String passing = "";
+            File idea = new File(listOfStock.get(i).getTickerSymbol() + ".CSV");
 
             if (idea.isFile()) {
                 Scanner sc = new Scanner(idea);
                 while (sc.hasNextLine()) {
-                    passing = sc.nextLine();
+                    passing = passing + sc.nextLine() + '\n';
                 }
-                writeFile(passing, idea, listOfStock, i);
+                // writeFile(passing, idea, listOfStock, i);
 
 
             } else {
                 idea.createNewFile();
-                writeFile(passing, idea, listOfStock, i);
+                //writeFile(passing, idea, listOfStock, i);
 
             }
-            System.out.println(listOfStock.get(i).getTickerSymbol() + listOfStock.get(i).getPolarity());
+
         }
+    }
+
+    public static void createGraph(File idea, ArrayList<Stock> listOfStock, int i) {
+        String line;
+        FileInputStream fis = null;
+
+        int[] prices = new int[10];
+
+        try {
+            fis = new FileInputStream(idea);
+
+            DataInputStream myInput = new DataInputStream(fis);
+            ArrayList<String[]> strar = new ArrayList<String[]>();
+
+            while ((line = myInput.readLine()) != null) {
+                strar.add(line.split(","));
+            }
+
+            for (int j = 0; j < prices.length; j++) {
+                Double price = Double.parseDouble(strar.get(j)[5]);
+                prices[j] = price.intValue();
+
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        new GraphingData(prices);
+        GraphingData.createGraph(listOfStock.get(i).getTickerSymbol());
 
 
     }
@@ -83,18 +115,7 @@ public class Main {
         writer.write(String.valueOf(listOfStock.get(i).getPriceChange()));
         writer.append(", ");
         writer.write(String.valueOf(listOfStock.get(i).getPriceChangePercent()));
-//            for (int j = 0; j < listOfStock.get(i).getHistoriclist().size(); j++) {
-//                String string = (String) listOfStock.get(i).getHistoriclist().get(j);
-//                String[] parts = string.split(" ");
-//
-//                StringBuilder sb = new StringBuilder();
-//                for (int k = 0; k < parts.length; k++) {
-//                    sb.append(parts[k]);
-//                }
-//                sb.setLength(sb.length() - 1);
-//                writer.write('\n');
-//                writer.write(sb.toString());
-//            }
+
 
         writer.flush();
         writer.close();

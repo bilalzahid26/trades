@@ -1,7 +1,8 @@
 package com.company;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -15,21 +16,10 @@ public class Stock {
     public double priceChange;
     public double priceChangePercent;
     public String currency;
-    public List historiclist;
+    public int polarity = 0;
 
-    public int getPolarity() {
-        return polarity;
-    }
 
-    public void setPolarity(int polarity) {
-        this.polarity = polarity;
-    }
-
-    public int polarity;
-
-    public List getHistoriclist() {
-        return historiclist;
-    }
+//
 
 
     public Stock(String symbol) {
@@ -42,12 +32,14 @@ public class Stock {
         String content = null;
         URLConnection connection = null;
         try {
-            connection = new URL("https://finance.google.co.uk/finance?q=" + symbol.toUpperCase() + "&ei=-JPKWfioD4iYUcG0mOgN").openConnection();
+            connection = new URL("https://finance.google.co.uk/finance?q="+symbol.toUpperCase()).openConnection();
             Scanner scanner = new Scanner(connection.getInputStream());
             scanner.useDelimiter("\\Z");
             content = scanner.next();
-            News news = new News(content);
-            setPolarity(news.getPolarity());
+            getNews(content);
+            setPolarity(polarity);
+
+
             content = content.substring(content.indexOf("itemprop=") + 1, content.indexOf("/>\n" +
                     "</div>\n" +
                     "</div>\n" +
@@ -103,45 +95,10 @@ public class Stock {
             }
         } catch (Exception e) {
         }
-
+        System.out.println("made: " + getTickerSymbol());
     }
 
-//    public void setHistoricStock(String exchange, String symbol) {
-//        String content = null;
-//        URLConnection connection = null;
-//        try {
-//            connection = new URL("http://www.eoddata.com/stockquote/" + exchange + "/" + symbol + ".htm").openConnection();
-//            Scanner scanner = new Scanner(connection.getInputStream());
-//            scanner.useDelimiter("\\Z");
-//            content = scanner.next();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            content = content.substring(content.indexOf("</th></tr>") + 1);
-//            content = content.substring(0, content.indexOf("</table>"));
-//            content = content.replaceAll("</td><td", " ");
-//            content = content.replaceAll("<tr><td>", " ");
-//            content = content.replaceAll("align=\"right\">", "");
-//            content = content.replaceAll("</td></tr>", "");
-//            content = content.replaceAll("/th></tr>", "");
-//            content = content.replaceAll("\r\n", "          ");
-//
-//        } catch (Exception e) {
-//        }
-//        String[] historicArray = content.split("          ");
-//        ArrayList<String> historicList = new ArrayList<String>();
-//
-//        for (String part : historicArray) {
-//            if (!part.equals("")) {
-//                historicList.add(part.substring(part.indexOf(" ") + 1).toUpperCase());
-//                //System.out.println(historicList);
-//            }
-//
-//        }
-//        this.historiclist = historicList;
-//
-//    }
+
 
     public String getName() {
         return name;
@@ -215,4 +172,139 @@ public class Stock {
     public void setCurrency(String currency) {
         this.currency = currency;
     }
+
+    String[] split;
+
+    public int getPolarity() {
+        return polarity;
+    }
+
+    public void setPolarity(int polarity) {
+        this.polarity = polarity;
+    }
+
+
+    public void getNews(String content) {
+
+        content = content.substring(content.indexOf("google.finance.data = {\"common\":") + 1, content.indexOf("google.finance.data.numberFormat"));
+        split = content.split("lead_story_url");
+        for (int i = 0; i < split.length; i++) {
+            split[i] = split[i].substring(split[i].indexOf("\"") + 1);
+            split[i] = split[i].substring(0, split[i].indexOf("\"a"));
+            split[i] = split[i].substring(2, split[i].length() - 2);
+
+            //System.out.println(split[i]);
+        }
+        for (int i = 1; i < split.length; i++) {
+            if (split[i] != "") {
+                getArticle(split[i]);
+
+            }
+        }
+
+    }
+
+    public void getArticle(String s) {
+
+        String content = null;
+        URLConnection connection = null;
+        try {
+            connection = new URL(s).openConnection();
+            Scanner scanner = new Scanner(connection.getInputStream());
+            scanner.useDelimiter("\\Z");
+            content = scanner.next();
+            content = content.substring(content.indexOf("<p>"));
+            content = content.substring(0, content.lastIndexOf("</p>"));
+            String lines[] = content.split("\\r?\\n");
+            ArrayList<String> articles = new ArrayList<String>();
+
+            for (int i = 0; i < lines.length; i++) {
+
+                if (!lines[i].contains("<p>")) {
+                    lines[i] = "";
+                } else {
+                    articles.add(lines[i]);
+                }
+
+
+            }
+            String article = "";
+            for (int i = 0; i < articles.size(); i++) {
+                articles.set(i, articles.get(i).replaceAll("<.*?>", ""));
+                articles.set(i, articles.get(i).replaceAll("\\s+", " "));
+                article = article + " " + articles.get(i);
+
+            }
+            checkPositivity(article);
+        } catch (Exception ex) {
+        }
+
+
+    }
+
+    public void checkPositivity(String article) {
+
+        String csvFile = "/Users/BilalZahid/Desktop/Computer Science/GitHub/trades/positive-words.csv";
+        String csvFile1 = "/Users/BilalZahid/Desktop/Computer Science/GitHub/trades/negative-words.csv";
+        String[] articleWords = article.split(" ");
+        String[] negativeWord = new String[0];
+        String[] positiveWord = new String[0];
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+
+
+            String str;
+
+            List<String> list = new ArrayList<String>();
+            while ((str = br.readLine()) != null) {
+                list.add(str);
+            }
+
+
+            positiveWord = list.toArray(new String[0]);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile1))) {
+
+            String str;
+
+            List<String> list = new ArrayList<String>();
+            while ((str = br.readLine()) != null) {
+                list.add(str);
+            }
+
+
+            negativeWord = list.toArray(new String[0]);
+
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+
+        for (int i = 0; i < positiveWord.length; i++) {
+
+            for (int j = 0; j < articleWords.length; j++) {
+                if (positiveWord[i].equals(articleWords[j])) {
+
+                    polarity++;
+                }
+            }
+
+        }
+        for (int i = 0; i < negativeWord.length; i++) {
+
+            for (int j = 0; j < articleWords.length; j++) {
+                if (negativeWord[i].equals(articleWords[j])) {
+
+                    polarity--;
+                }
+            }
+
+        }
+
+    }
 }
+
